@@ -228,6 +228,167 @@
       background: var(--gold);
     }
 
+
+    /* Animated timeline */
+    .timeline::after {
+      content: "";
+      position: absolute;
+      left: 10px;
+      top: 9px;
+      width: 4px;
+      height: 0;
+      border-radius: 999px;
+      background: var(--gold);
+      box-shadow: 0 0 14px rgba(178,138,58,.28);
+      transition: height 1.4s cubic-bezier(.2,.8,.2,1);
+      z-index: 0;
+    }
+
+    .timeline.is-visible::after {
+      height: calc(100% - 19px);
+    }
+
+    .event {
+      opacity: 0;
+      transform: translateX(-24px);
+      transition:
+        opacity .7s cubic-bezier(.2,.8,.2,1),
+        transform .7s cubic-bezier(.2,.8,.2,1);
+    }
+
+    .timeline.is-visible .event {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .timeline.is-visible .event:nth-child(1) { transition-delay: .15s; }
+    .timeline.is-visible .event:nth-child(2) { transition-delay: .35s; }
+    .timeline.is-visible .event:nth-child(3) { transition-delay: .55s; }
+    .timeline.is-visible .event:nth-child(4) { transition-delay: .75s; }
+
+    .timeline.is-visible .event::before {
+      animation: timelinePulse 1.6s ease-in-out infinite;
+    }
+
+    .countdown {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .count-box strong {
+      font-variant-numeric: tabular-nums;
+      transition: transform .16s ease;
+    }
+
+    .count-box.tick strong {
+      transform: scale(1.08);
+    }
+
+    .whatsapp-contact {
+      margin: 4px 0 18px;
+      padding: 22px 18px;
+      border-radius: 22px;
+      background: var(--green);
+      color: var(--white);
+      text-align: center;
+      box-shadow: 0 14px 32px rgba(24,34,21,.18);
+    }
+
+    .whatsapp-contact strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #c19a4d;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 22px;
+    }
+
+    .whatsapp-contact p {
+      margin: 0 0 15px;
+      color: rgba(255,250,240,.8);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .whatsapp-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      width: min(100%, 360px);
+      padding: 13px 18px;
+      border: 0;
+      border-radius: 999px;
+      background: #25D366;
+      color: #102415;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 900;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      transition: transform .2s ease, filter .2s ease;
+    }
+
+    .whatsapp-button:active {
+      transform: scale(.97);
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .whatsapp-button:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.04);
+      }
+    }
+
+    @keyframes timelinePulse {
+      0%, 100% {
+        box-shadow: 0 0 0 2px rgba(178,138,58,.35);
+      }
+      50% {
+        box-shadow: 0 0 0 7px rgba(178,138,58,.08);
+      }
+    }
+
+    @media (max-width: 520px) {
+      .countdown {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 5px;
+      }
+
+      .count-box {
+        padding: 11px 3px;
+        border-radius: 14px;
+      }
+
+      .count-box strong {
+        font-size: clamp(17px, 5.5vw, 23px);
+      }
+
+      .count-box small {
+        font-size: 8px;
+        letter-spacing: .04em;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .timeline::after {
+        transition: none !important;
+        height: calc(100% - 19px);
+      }
+
+      .event {
+        opacity: 1;
+        transform: none;
+        transition: none !important;
+      }
+
+      .timeline.is-visible .event::before {
+        animation: none !important;
+      }
+
+      .count-box strong {
+        transition: none !important;
+      }
+    }
+
     .timeline {
       position: relative;
       margin-top: 8px;
@@ -503,6 +664,11 @@
         grid-template-columns: 1fr;
       }
 
+      .whatsapp-contact {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
       .game {
         min-height: 125px;
       }
@@ -539,6 +705,10 @@
         <div class="count-box">
           <strong id="minutes">--</strong>
           <small>Minute</small>
+        </div>
+        <div class="count-box seconds-box">
+          <strong id="seconds">--</strong>
+          <small>Sekondes</small>
         </div>
       </div>
     </div>
@@ -679,6 +849,18 @@
       </div>
     </section>
 
+    <div class="whatsapp-contact">
+      <strong>Het jy 'n vraag?</strong>
+      <p>Stuur gerus 'n WhatsApp-boodskap as jy iets oor die dag wil weet.</p>
+      <a
+        class="whatsapp-button"
+        href="https://wa.me/27817912816"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Kontak ons op WhatsApp"
+      >💬 WhatsApp My</a>
+    </div>
+
     <div class="footer">
       Dieter se Bachelors · 26 September 2026
     </div>
@@ -688,32 +870,73 @@
   <div class="toast" id="toast">Dieter se dag kom! 🍻</div>
 
   <script>
-    // Countdown to Saturday, 26 September 2026 at 14:00 SAST.
-    // The browser uses the visitor's local time, so the countdown works internationally.
+    // Live countdown to Saturday, 26 September 2026 at 14:00 SAST.
+    // The ISO timestamp includes +02:00, so the target moment is unambiguous
+    // regardless of the visitor's phone/browser timezone.
     const target = new Date("2026-09-26T14:00:00+02:00").getTime();
+
+    const countdownElements = {
+      days: document.getElementById("days"),
+      hours: document.getElementById("hours"),
+      minutes: document.getElementById("minutes"),
+      seconds: document.getElementById("seconds")
+    };
+
+    let lastSecond = null;
 
     function updateCountdown() {
       const now = Date.now();
-      const distance = target - now;
+      const distance = Math.max(0, target - now);
 
-      if (distance <= 0) {
-        document.getElementById("days").textContent = "0";
-        document.getElementById("hours").textContent = "0";
-        document.getElementById("minutes").textContent = "0";
-        return;
+      const totalSeconds = Math.floor(distance / 1000);
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor((totalSeconds % 86400) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      countdownElements.days.textContent = String(days);
+      countdownElements.hours.textContent = String(hours).padStart(2, "0");
+      countdownElements.minutes.textContent = String(minutes).padStart(2, "0");
+      countdownElements.seconds.textContent = String(seconds).padStart(2, "0");
+
+      if (lastSecond !== seconds) {
+        countdownElements.seconds.parentElement.classList.remove("tick");
+        void countdownElements.seconds.offsetWidth;
+        countdownElements.seconds.parentElement.classList.add("tick");
+        lastSecond = seconds;
       }
-
-      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((distance / (1000 * 60 * 60)) % 24);
-      const minutes = Math.floor((distance / (1000 * 60)) % 60);
-
-      document.getElementById("days").textContent = days;
-      document.getElementById("hours").textContent = hours;
-      document.getElementById("minutes").textContent = minutes;
     }
 
     updateCountdown();
-    setInterval(updateCountdown, 30000);
+
+    // Runs frequently enough to stay visually live even if a phone's timer
+    // fires slightly late. The displayed value is always calculated from Date.now().
+    const countdownTimer = setInterval(updateCountdown, 250);
+
+    // Animate the timeline when it enters the phone's viewport.
+    const timeline = document.querySelector(".timeline");
+
+    if (timeline && "IntersectionObserver" in window) {
+      const timelineObserver = new IntersectionObserver(
+        (entries, observer) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              timeline.classList.add("is-visible");
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        {
+          threshold: 0.15,
+          rootMargin: "0px 0px -40px 0px"
+        }
+      );
+
+      timelineObserver.observe(timeline);
+    } else if (timeline) {
+      // Fallback for older browsers.
+      timeline.classList.add("is-visible");
+    }
 
     // Small welcome animation after loading.
     window.addEventListener("load", () => {
