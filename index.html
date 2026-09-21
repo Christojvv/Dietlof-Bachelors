@@ -236,33 +236,30 @@
       overflow: visible;
     }
 
-    .timeline::after {
-      content: "";
+    /* Line and beer are positioned in JS to match the real dot positions exactly. */
+    .timeline-line {
       position: absolute;
-      left: 7px;
-      top: 9px;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
+      width: 2px;
       background: var(--gold);
-      box-shadow: 0 0 0 3px rgba(178,138,58,.16), 0 0 12px rgba(178,138,58,.45);
-      z-index: 3;
-      pointer-events: none;
-      animation: timelineBall 3.2s linear infinite;
-      will-change: transform;
-    }
-
-    @keyframes timelineBall {
-      0% {
-        transform: translate3d(0, 0, 0);
-      }
-      100% {
-        transform: translate3d(0, calc(100% - 20px), 0);
-      }
-    }
-
-    .timeline::before {
+      opacity: .5;
       z-index: 1;
+      pointer-events: none;
+    }
+
+    .timeline-beer {
+      position: absolute;
+      left: -12px;
+      top: -12px;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      line-height: 1;
+      z-index: 5;
+      pointer-events: none;
+      filter: drop-shadow(0 2px 2px rgba(20,24,13,.25));
     }
 
     .event {
@@ -337,54 +334,41 @@
         filter: brightness(1.04);
       }
     }
-
-
-      position: relative;
-      margin-top: 8px;
-    }
-
-    .timeline::before {
-      content: "";
-      position: absolute;
-      left: 11px;
-      top: 9px;
-      bottom: 10px;
-      width: 2px;
-      background: rgba(102,114,61,.35);
-    }
-
     .event {
       position: relative;
       display: grid;
       grid-template-columns: 88px 1fr;
       gap: 16px;
       padding-bottom: 27px;
+      align-items: start;
     }
 
     .event:last-child {
       padding-bottom: 0;
     }
 
-    .event::before {
-      content: "";
-      position: absolute;
-      left: 5px;
-      top: 6px;
+    .event-time {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      white-space: nowrap;
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--olive);
+      letter-spacing: .03em;
+    }
+
+    .dot {
+      flex: 0 0 auto;
       width: 14px;
       height: 14px;
+      box-sizing: border-box;
       border: 3px solid var(--cream);
       border-radius: 50%;
       background: var(--gold);
       box-shadow: 0 0 0 2px rgba(178,138,58,.35);
-      z-index: 1;
-    }
-
-    .event-time {
-      padding-left: 30px;
-      font-size: 14px;
-      font-weight: 900;
-      color: var(--olive);
-      letter-spacing: .04em;
+      position: relative;
+      z-index: 2;
     }
 
     .event-content {
@@ -596,13 +580,13 @@
       }
 
       .event {
-        grid-template-columns: 67px 1fr;
+        grid-template-columns: 72px 1fr;
         gap: 10px;
       }
 
       .event-time {
-        padding-left: 26px;
-        font-size: 12px;
+        font-size: 11px;
+        gap: 7px;
       }
 
       .event-content {
@@ -669,9 +653,11 @@
       <h2 class="section-title"><span class="mark"></span>Program vir die dag</h2>
 
       <div class="timeline">
+        <div class="timeline-line" aria-hidden="true"></div>
+        <span class="timeline-beer" aria-hidden="true">🍺</span>
 
         <div class="event">
-          <div class="event-time">14:00</div>
+          <div class="event-time"><span class="dot" aria-hidden="true"></span>14:00</div>
           <div class="event-content">
             <h3>Aankoms &amp; Inrig</h3>
             <p>Verwelkomingsdrankies, kry almal bymekaar en slaan tente op / rig kamers in.</p>
@@ -679,7 +665,7 @@
         </div>
 
         <div class="event">
-          <div class="event-time">15:00</div>
+          <div class="event-time"><span class="dot" aria-hidden="true"></span>15:00</div>
           <div class="event-content">
             <h3>Aktiwiteite &amp; Games</h3>
             <p>’n Paar games om die middag aan die gang te kry — met Dieter as die hoofteiken.</p>
@@ -687,7 +673,7 @@
         </div>
 
         <div class="event">
-          <div class="event-time">18:00</div>
+          <div class="event-time"><span class="dot" aria-hidden="true"></span>18:00</div>
           <div class="event-content">
             <h3>Vure &amp; Braai</h3>
             <p>Vure word gemaak, wors &amp; dop, saam met toesprake en ’n paar goeie “roasts” vir die bruidegom.</p>
@@ -695,7 +681,7 @@
         </div>
 
         <div class="event">
-          <div class="event-time">20:00 → laat</div>
+          <div class="event-time"><span class="dot" aria-hidden="true"></span>20:00<br>→ laat</div>
           <div class="event-content">
             <h3>Aandprogram</h3>
             <p>Kuiery, musiek en goeie gees. Ons hou aan totdat die manne moeg is.</p>
@@ -871,6 +857,90 @@
         }, 3200);
       }, 900);
     });
+
+    // Timeline beer: line + beer are positioned from the *real* dot elements,
+    // so the line always ends exactly at the last dot regardless of how tall
+    // any row is. The return trip is a true smooth quadratic curve (computed
+    // every frame), not a handful of keyframe steps.
+    (function setupTimelineBeer() {
+      const timeline = document.querySelector(".timeline");
+      const line = document.querySelector(".timeline-line");
+      const beer = document.querySelector(".timeline-beer");
+      const dots = document.querySelectorAll(".timeline .dot");
+      if (!timeline || !line || !beer || dots.length < 2) return;
+
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      function dotCenter(dot) {
+        const tRect = timeline.getBoundingClientRect();
+        const dRect = dot.getBoundingClientRect();
+        return {
+          x: dRect.left + dRect.width / 2 - tRect.left,
+          y: dRect.top + dRect.height / 2 - tRect.top
+        };
+      }
+
+      function setBeer(x, y) {
+        beer.style.left = (x - 12) + "px";
+        beer.style.top = (y - 12) + "px";
+      }
+
+      function easeInOutQuad(t) {
+        return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      }
+
+      let first, last, rafId, phaseStart;
+
+      function layout() {
+        first = dotCenter(dots[0]);
+        last = dotCenter(dots[dots.length - 1]);
+        line.style.left = (first.x - 1) + "px";
+        line.style.top = first.y + "px";
+        line.style.height = Math.max(0, last.y - first.y) + "px";
+        if (reduceMotion) setBeer(first.x, first.y);
+      }
+
+      function frame(now) {
+        if (phaseStart === undefined) phaseStart = now;
+        const downMs = 3400, pauseBottomMs = 900, arcMs = 1800, pauseTopMs = 700;
+        const total = downMs + pauseBottomMs + arcMs + pauseTopMs;
+        const elapsed = (now - phaseStart) % total;
+
+        // Control point for the return arc: bulges out to the right, roughly
+        // spanning toward the right half of the card.
+        const bulge = Math.max(110, timeline.clientWidth * 0.75);
+        const ctrlX = first.x + bulge;
+        const ctrlY = (first.y + last.y) / 2;
+
+        if (elapsed <= downMs) {
+          const t = easeInOutQuad(elapsed / downMs);
+          setBeer(first.x, first.y + (last.y - first.y) * t);
+        } else if (elapsed <= downMs + pauseBottomMs) {
+          setBeer(last.x, last.y);
+        } else if (elapsed <= downMs + pauseBottomMs + arcMs) {
+          const t = easeInOutQuad((elapsed - downMs - pauseBottomMs) / arcMs);
+          const mt = 1 - t;
+          const x = mt * mt * last.x + 2 * mt * t * ctrlX + t * t * first.x;
+          const y = mt * mt * last.y + 2 * mt * t * ctrlY + t * t * first.y;
+          setBeer(x, y);
+        } else {
+          setBeer(first.x, first.y);
+        }
+
+        rafId = requestAnimationFrame(frame);
+      }
+
+      layout();
+      if (!reduceMotion) {
+        rafId = requestAnimationFrame(frame);
+      }
+
+      let resizeTimer;
+      window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(layout, 150);
+      });
+    })();
   </script>
 
 </body>
