@@ -793,7 +793,7 @@
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Kontak ons op WhatsApp"
-      >💬 WhatsApp My</a>
+      >💬 WhatsApp ons</a>
     </div>
 
     <div class="footer">
@@ -869,8 +869,6 @@
       const dots = document.querySelectorAll(".timeline .dot");
       if (!timeline || !line || !beer || dots.length < 2) return;
 
-      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
       function dotCenter(dot) {
         const tRect = timeline.getBoundingClientRect();
         const dRect = dot.getBoundingClientRect();
@@ -897,7 +895,6 @@
         line.style.left = (first.x - 1) + "px";
         line.style.top = first.y + "px";
         line.style.height = Math.max(0, last.y - first.y) + "px";
-        if (reduceMotion) setBeer(first.x, first.y);
       }
 
       function frame(now) {
@@ -931,9 +928,7 @@
       }
 
       layout();
-      if (!reduceMotion) {
-        rafId = requestAnimationFrame(frame);
-      }
+      rafId = requestAnimationFrame(frame);
 
       let resizeTimer;
       window.addEventListener("resize", () => {
