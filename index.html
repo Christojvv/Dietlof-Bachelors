@@ -229,45 +229,45 @@
     }
 
 
-    /* Animated timeline */
+    /* Simple phone-safe looping timeline animation */
+    .timeline {
+      position: relative;
+      margin-top: 8px;
+      overflow: visible;
+    }
+
     .timeline::after {
       content: "";
       position: absolute;
-      left: 10px;
+      left: 7px;
       top: 9px;
-      width: 4px;
-      height: 0;
-      border-radius: 999px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
       background: var(--gold);
-      box-shadow: 0 0 14px rgba(178,138,58,.28);
-      transition: height 1.4s cubic-bezier(.2,.8,.2,1);
-      z-index: 0;
+      box-shadow: 0 0 0 3px rgba(178,138,58,.16), 0 0 12px rgba(178,138,58,.45);
+      z-index: 3;
+      pointer-events: none;
+      animation: timelineBall 3.2s linear infinite;
+      will-change: transform;
     }
 
-    .timeline.is-visible::after {
-      height: calc(100% - 19px);
+    @keyframes timelineBall {
+      0% {
+        transform: translate3d(0, 0, 0);
+      }
+      100% {
+        transform: translate3d(0, calc(100% - 20px), 0);
+      }
+    }
+
+    .timeline::before {
+      z-index: 1;
     }
 
     .event {
-      opacity: 0;
-      transform: translateX(-24px);
-      transition:
-        opacity .7s cubic-bezier(.2,.8,.2,1),
-        transform .7s cubic-bezier(.2,.8,.2,1);
-    }
-
-    .timeline.is-visible .event {
-      opacity: 1;
-      transform: translateX(0);
-    }
-
-    .timeline.is-visible .event:nth-child(1) { transition-delay: .15s; }
-    .timeline.is-visible .event:nth-child(2) { transition-delay: .35s; }
-    .timeline.is-visible .event:nth-child(3) { transition-delay: .55s; }
-    .timeline.is-visible .event:nth-child(4) { transition-delay: .75s; }
-
-    .timeline.is-visible .event::before {
-      animation: timelinePulse 1.6s ease-in-out infinite;
+      position: relative;
+      z-index: 2;
     }
 
     .countdown {
@@ -338,58 +338,7 @@
       }
     }
 
-    @keyframes timelinePulse {
-      0%, 100% {
-        box-shadow: 0 0 0 2px rgba(178,138,58,.35);
-      }
-      50% {
-        box-shadow: 0 0 0 7px rgba(178,138,58,.08);
-      }
-    }
 
-    @media (max-width: 520px) {
-      .countdown {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 5px;
-      }
-
-      .count-box {
-        padding: 11px 3px;
-        border-radius: 14px;
-      }
-
-      .count-box strong {
-        font-size: clamp(17px, 5.5vw, 23px);
-      }
-
-      .count-box small {
-        font-size: 8px;
-        letter-spacing: .04em;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .timeline::after {
-        transition: none !important;
-        height: calc(100% - 19px);
-      }
-
-      .event {
-        opacity: 1;
-        transform: none;
-        transition: none !important;
-      }
-
-      .timeline.is-visible .event::before {
-        animation: none !important;
-      }
-
-      .count-box strong {
-        transition: none !important;
-      }
-    }
-
-    .timeline {
       position: relative;
       margin-top: 8px;
     }
@@ -912,31 +861,6 @@
     // Runs frequently enough to stay visually live even if a phone's timer
     // fires slightly late. The displayed value is always calculated from Date.now().
     const countdownTimer = setInterval(updateCountdown, 250);
-
-    // Animate the timeline when it enters the phone's viewport.
-    const timeline = document.querySelector(".timeline");
-
-    if (timeline && "IntersectionObserver" in window) {
-      const timelineObserver = new IntersectionObserver(
-        (entries, observer) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              timeline.classList.add("is-visible");
-              observer.unobserve(entry.target);
-            }
-          });
-        },
-        {
-          threshold: 0.15,
-          rootMargin: "0px 0px -40px 0px"
-        }
-      );
-
-      timelineObserver.observe(timeline);
-    } else if (timeline) {
-      // Fallback for older browsers.
-      timeline.classList.add("is-visible");
-    }
 
     // Small welcome animation after loading.
     window.addEventListener("load", () => {
